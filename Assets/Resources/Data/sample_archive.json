@@ -1,0 +1,69 @@
+{
+  "config": {
+    "appName": "AMBEDKAR DIGITAL HERITAGE",
+    "welcomeMessage": "Welcome to the Ambedkar Digital Heritage Museum. Explore historical documents, speeches, photographs, constitutional materials and archival records.",
+    "supportedLanguages": ["en", "hi", "ta"]
+  },
+  "records": [
+    {
+      "id": "AMB-SAM-001",
+      "type": "Manuscript",
+      "title": "[SAMPLE] Sample Manuscript Record",
+      "description": "A placeholder manuscript record used for offline demo mode. Real institutional scans and OCR text will be supplied by the archive backend.",
+      "date": "",
+      "category": "Manuscripts",
+      "source": "sample-dataset",
+      "language": "en",
+      "isSampleData": true,
+      "relatedIds": ["AMB-SAM-002"]
+    },
+    {
+      "id": "AMB-SAM-002",
+      "type": "Document",
+      "title": "[SAMPLE] Sample Digitized Document",
+      "description": "A placeholder document whose OCR-extracted text will be searchable once the OCR pipeline is connected. This entry only proves the data path works.",
+      "date": "1916",
+      "category": "Constitutional Work",
+      "source": "sample-dataset",
+      "language": "en",
+      "isSampleData": true,
+      "relatedIds": ["AMB-SAM-001", "AMB-SAM-005"]
+    },
+    {
+      "id": "AMB-SAM-003",
+      "type": "Photograph",
+      "title": "[SAMPLE] Sample Photograph Record",
+      "description": "Placeholder record for a scanned photograph. The archive stores the original file, metadata, and a stable document id.",
+      "date": "",
+      "category": "Photographs",
+      "source": "sample-dataset",
+      "language": "en",
+      "isSampleData": true,
+      "relatedIds": []
+    },
+    {
+      "id": "AMB-SAM-004",
+      "type": "Speech",
+      "title": "[SAMPLE] Sample Speech Record",
+      "description": "Placeholder record for an audio speech. Audio narration and text-to-speech are wired in later phases.",
+      "date": "1942",
+      "category": "Speeches",
+      "source": "sample-dataset",
+      "language": "en",
+      "isSampleData": true,
+      "relatedIds": ["AMB-SAM-005"]
+    },
+    {
+      "id": "AMB-SAM-005",
+      "type": "Event",
+      "title": "[SAMPLE] Sample Timeline Event",
+      "description": "Placeholder timeline event demonstrating how the 3D timeline will load configurable events from data instead of being hard-coded.",
+      "date": "1891",
+      "category": "Life & Journey",
+      "source": "sample-dataset",
+      "language": "en",
+      "isSampleData": true,
+      "relatedIds": ["AMB-SAM-002", "AMB-SAM-004"]
+    }
+  ]
+}

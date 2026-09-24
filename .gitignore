@@ -1,0 +1,94 @@
+# =============================================================================
+# Unity project .gitignore (Unity 6 / Meta XR / Android)
+# Commit: Assets, Packages, ProjectSettings (incl. all *.meta files).
+# NEVER commit: Library, Temp, Logs, UserSettings, Builds.
+# =============================================================================
+
+# Unity generated
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+/[Tt]est[Rr]esults/
+/crashlytics-build.properties
+
+# Asset store tools
+MixedRealityFeatureSet.xml
+
+# Export/import product files
+*.exportHistorySummary
+*.fdm
+*.tm
+*.exports
+*.xlsx
+
+# Asset store cache
+/.vsconfig
+
+# Generated native plugin bridge (kept tracked if you rely on it)
+*.bridgesupport
+
+# Always keep: .meta files (Unity asset GUIDs)
+
+# Visual Studio / VS Code
+/.vs/
+/.vscode/
+
+# JetBrains / Rider
+/.idea/
+*.sln.iml
+*.user
+*.userprefs
+*.booproj
+
+# Evergreen
+*.evergreen
+
+# Windows / macOS / Linux junk
+.DS_Store
+Thumbs.db
+
+# Android / Gradle
+*.apk
+*.aab
+*.keystore
+!*.keystore.meta
+*.jks
+!*.jks.meta
+key.keystore
+/gradle/
+gradle-app.setting
+*.gradle
+!*.gradle.meta
+local.properties
+*.ap_.zip
+
+# Secrets and environment (never commit keys/tokens)
+.env
+.env.*
+!.env.example
+*.env
+local.env
+secrets.*
+*.key
+*.pem
+!*.pem.meta
+
+# Large media / convenience (keep if you intentionally track them)
+*.mp4
+*.mov
+*.mkv
+*.bundle
+*.unitypackage
+
+# IDE plugin assets
+*.ux
+*.log
+# Unity package backups (leave committed under Packages/ source-controlled)
+*.csproj
+*.sln
+*.so

@@ -7,7 +7,7 @@
   "records": [
     {
       "id": "AMB-SAM-001",
-      "type": "Manuscript",
+      "type": 1,
       "title": "[SAMPLE] Sample Manuscript Record",
       "description": "A placeholder manuscript record used for offline demo mode. Real institutional scans and OCR text will be supplied by the archive backend.",
       "date": "",
@@ -19,7 +19,7 @@
     },
     {
       "id": "AMB-SAM-002",
-      "type": "Document",
+      "type": 5,
       "title": "[SAMPLE] Sample Digitized Document",
       "description": "A placeholder document whose OCR-extracted text will be searchable once the OCR pipeline is connected. This entry only proves the data path works.",
       "date": "1916",
@@ -31,7 +31,7 @@
     },
     {
       "id": "AMB-SAM-003",
-      "type": "Photograph",
+      "type": 3,
       "title": "[SAMPLE] Sample Photograph Record",
       "description": "Placeholder record for a scanned photograph. The archive stores the original file, metadata, and a stable document id.",
       "date": "",
@@ -43,7 +43,7 @@
     },
     {
       "id": "AMB-SAM-004",
-      "type": "Speech",
+      "type": 6,
       "title": "[SAMPLE] Sample Speech Record",
       "description": "Placeholder record for an audio speech. Audio narration and text-to-speech are wired in later phases.",
       "date": "1942",
@@ -55,7 +55,7 @@
     },
     {
       "id": "AMB-SAM-005",
-      "type": "Event",
+      "type": 9,
       "title": "[SAMPLE] Sample Timeline Event",
       "description": "Placeholder timeline event demonstrating how the 3D timeline will load configurable events from data instead of being hard-coded.",
       "date": "1891",

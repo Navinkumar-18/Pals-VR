@@ -13,7 +13,22 @@ namespace AmbedkarHeritage.Core
             "Welcome to the Ambedkar Digital Heritage Museum.";
         public static string[] SupportedLanguages { get; private set; } = { "en" };
 
-        public static bool UseDemoMode { get; set; } = true;
+        /// <summary>
+        /// True when the app must run fully offline against local demo data
+        /// (Resources/Data/sample_archive.json). The backend is optional.
+        /// </summary>
+        public static bool IsDemoMode { get; set; } = true;
+
+        /// <summary>
+        /// Backward-compatible alias for <see cref="IsDemoMode"/>.
+        /// </summary>
+        [System.Obsolete("Use IsDemoMode instead.")]
+        public static bool UseDemoMode
+        {
+            get { return IsDemoMode; }
+            set { IsDemoMode = value; }
+        }
+
         public static string ApiBaseUrl { get; set; } = "http://127.0.0.1:8000/api";
 
         public static void ApplyConfig(MuseumConfig config)

@@ -24,14 +24,10 @@ namespace AmbedkarHeritage.Core
             EnsureOvrManager();
             DemoArchiveLoader.Instance.Load();
 
-            if (MuseumApp.UseDemoMode)
-            {
-                MuseumApp.UseDemoMode = true;
-            }
-
             ApplyConfigToScene();
 
-            Debug.Log("[AmbedkarHeritage] Bootstrap complete. AppName=" + MuseumApp.AppName);
+            Debug.Log("[AmbedkarHeritage] Bootstrap complete. AppName=" + MuseumApp.AppName
+                      + " | Mode=" + (MuseumApp.IsDemoMode ? "DEMO" : "LIVE"));
         }
 
         private static void EnsureOvrManager()

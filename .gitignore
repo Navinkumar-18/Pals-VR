@@ -16,6 +16,10 @@
 /[Tt]est[Rr]esults/
 /crashlytics-build.properties
 
+# Unity 6 Android native build tooling output (generated after Android builds)
+# See docs/utmp-cleanup.md before removing the already-tracked files.
+/.utmp/
+
 # Asset store tools
 MixedRealityFeatureSet.xml
 
@@ -91,4 +95,5 @@ secrets.*
 # Unity package backups (leave committed under Packages/ source-controlled)
 *.csproj
 *.sln
+*.slnx
 *.so

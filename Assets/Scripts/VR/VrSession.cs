@@ -36,7 +36,7 @@ namespace AmbedkarHeritage.VR
                 _status.Append("Headset: ").Append(HeadsetPresent ? "tracked" : "not detected");
                 _status.Append(" | L: ").Append(LeftControllerPresent ? "ok" : "--");
                 _status.Append(" | R: ").Append(RightControllerPresent ? "ok" : "--");
-                _status.Append(" | Mode: ").Append(Core.MuseumApp.UseDemoMode ? "DEMO" : "LIVE");
+                _status.Append(" | Mode: ").Append(Core.MuseumApp.IsDemoMode ? "DEMO" : "LIVE");
                 return _status.ToString();
             }
         }

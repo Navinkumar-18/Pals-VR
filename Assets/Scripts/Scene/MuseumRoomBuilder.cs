@@ -38,7 +38,10 @@ namespace AmbedkarHeritage.ExhibitRoom
                 return;
             }
 
+            // Local demo data is loaded for config + offline records; the
+            // archive service then selects the active provider (demo or API).
             DemoArchiveLoader.Instance.Load();
+            ArchiveService.EnsureReady();
 
             GameObject room = new GameObject(RoomRootName);
             room.transform.SetParent(parent.transform, false);
@@ -205,14 +208,15 @@ namespace AmbedkarHeritage.ExhibitRoom
             Text toast = UiFactory.MakeLabel(body, "ToastText", new Vector2(0.5f, 0.225f), new Vector2(1700, 70),
                 32, TextAnchor.MiddleCenter, "", AccentTextColor);
 
-            string[] actionLabels = { "VIEW ORIGINAL", "READ TEXT", "LISTEN", "TRANSLATE", "RELATED CONTENT", "ASK AI", "CLOSE" };
+            string[] actionLabels = { "VIEW ORIGINAL", "READ OCR TEXT", "LISTEN", "TRANSLATE", "RELATED CONTENT", "ASK AI", "CLOSE" };
             VRButton[] buttons = new VRButton[actionLabels.Length];
             for (int i = 0; i < actionLabels.Length; i++)
             {
                 float centerX = 0.06f + i * 0.14667f;
                 Color color = i == actionLabels.Length - 1 ? CloseColor : ButtonColor;
+                // Wider buttons + 30px font keep the longer "READ OCR TEXT" label on one line.
                 buttons[i] = UiFactory.MakeButton(canvas, body, actionLabels[i], actionLabels[i],
-                    new Vector2(centerX, 0.075f), new Vector2(235, 105), 32, color, null);
+                    new Vector2(centerX, 0.075f), new Vector2(250, 105), 30, color, null);
             }
 
             RectTransform relatedRoot = MakeFullStretchChild(canvas.transform, "RelatedRoot");

@@ -93,12 +93,21 @@ namespace AmbedkarHeritage.Interaction
         {
             ResolveRecord();
             SetActive(false);
+            // Re-resolve when the archive provider delivers data or switches
+            // (API loaded asynchronously / offline fallback) — no interaction
+            // code depends on provider selection.
+            ArchiveService.DataChanged += OnArchiveDataChanged;
+        }
+
+        private void OnArchiveDataChanged()
+        {
+            ResolveRecord();
         }
 
         /// <summary>Re-binds the record (idempotent; called from Awake and by regression checks).</summary>
         public void ResolveRecord()
         {
-            _record = DemoArchiveLoader.Instance.Find(archiveRecordId);
+            _record = ArchiveService.Find(archiveRecordId);
             if (_record == null && !string.IsNullOrEmpty(archiveRecordId))
             {
                 Debug.LogWarning("[AmbedkarHeritage] Exhibit bound to unknown record id: " + archiveRecordId);
@@ -248,6 +257,7 @@ namespace AmbedkarHeritage.Interaction
 
         private void OnDestroy()
         {
+            ArchiveService.DataChanged -= OnArchiveDataChanged;
             ExhibitRegistry.Unregister(this);
 
             ArchiveInfoPanel panel = ArchiveInfoPanel.Instance;

@@ -5,6 +5,10 @@ namespace AmbedkarHeritage.Core
 {
     public enum ArchiveRecordType
     {
+        // NOTE: JsonUtility serializes enums as their INTEGER value, so JSON
+        // data must use these numbers (e.g. "type": 1 for Manuscript).
+        // ArchiveRecord.ParseType() additionally accepts human-readable strings
+        // for data arriving from non-JsonUtility sources (backend API, tools).
         Unknown = 0,
         Manuscript = 1,
         Book = 2,

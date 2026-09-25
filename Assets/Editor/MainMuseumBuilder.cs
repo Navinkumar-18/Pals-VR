@@ -35,6 +35,7 @@ namespace AmbedkarHeritage.EditorTools
             CreateExhibitPrefab();
             PlaceExhibits(world);
             CreateGrabBall();
+            FoundationRegistrar.AddMissingCoreObjects();
 
             Directory.CreateDirectory(Path.GetDirectoryName(ScenePath));
             EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene(), ScenePath);

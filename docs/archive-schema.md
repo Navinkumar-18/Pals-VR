@@ -41,6 +41,7 @@ Unity client can swap demo data for live data without code changes.
 | `video`          | string       | no       | `video`     | Reference to video asset. |
 | `document`       | string       | no       | `document`  | Reference to original scanned document. |
 | `ocrText`        | string       | no       | `ocrText`   | OCR-extracted text (Phase F pipeline output; search/RAG operate on this). |
+| `pages`          | string[]     | no       | `pages`     | Ordered image-page references for the document viewer (multi-page). Falls back to `image`/`document` when absent. |
 | `tags`           | string[]     | no       | `tags`      | Free-form search/knowledge-mapping tags. |
 
 Absent optional fields deserialize to: `null` (strings), `false` (bools),
@@ -59,8 +60,33 @@ Absent optional fields deserialize to: `null` (strings), `false` (bools),
 | `AMB-SAM-003` | Photograph (3) | image, tags, citation (no audio/video — omitted)  |
 | `AMB-SAM-004` | Speech (6)     | audio, document (transcript), ocrText, tags       |
 | `AMB-SAM-005` | Event (9)      | eventId `TL-1891`, tags, citation                 |
-| `AMB-SAM-006` | Book (2)       | image, document, ocrText, tags, citation (new record) |
-| `AMB-SAM-007` | Letter (4)     | document, ocrText, tags, citation (new record)    |
+| `AMB-SAM-006` | Book (2)       | image, document, pages (3), ocrText, tags, citation (new record) |
+| `AMB-SAM-007` | Letter (4)     | document, pages (1), ocrText, tags, citation (new record) |
+| `AMB-SAM-008` | Video (8)      | video, tags, citation (new record)                      |
+
+## Archive Room layout (`Resources/Data/archive_room.json`)
+
+Data-driven placement of exhibit stations (Phase C). One JSON per record — nothing
+exhibit-specific is hard-coded:
+
+```json
+{ "room": {
+    "roomName": "Archive Room (Demo)",
+    "accentColor": [0.55, 0.35, 0.12],
+    "boardColor": [0.2, 0.42, 0.55],
+    "stations": [
+      { "exhibitId": "AMB-SAM-001", "displayType": "manuscript",
+        "position": [-6.3, 0, 2.6], "rotation": [0, 180, 0], "scale": 1 }
+    ]
+} }
+```
+
+- `displayType` overrides station appearance: `manuscript|book|document|letter|photograph|event` (board),
+  `speech|audio` (speaker), `video` (screen); `""` = derive from record type.
+- Loader: `ArchiveRoomDataLoader` (built-in fallback layout if the file is missing/invalid).
+- Builder: `MuseumRoomBuilder.BuildMuseumRoom` creates stations, the archive info panel,
+  the document viewer and the category filter from this data. Used by `MainMuseumBuilder`
+  (scene baking) and the regression checks (temp scene).
 
 ## Consumers
 

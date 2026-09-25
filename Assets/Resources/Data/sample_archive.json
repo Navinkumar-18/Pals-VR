@@ -20,6 +20,7 @@
       "relatedIds": ["AMB-SAM-002"],
       "image": "images/AMB-SAM-001.jpg",
       "document": "documents/AMB-SAM-001-scan.pdf",
+      "pages": ["images/AMB-SAM-001-p1.jpg", "images/AMB-SAM-001-p2.jpg"],
       "ocrText": "[SAMPLE OCR] Placeholder transcript for the sample manuscript. The real OCR pipeline will replace this text.",
       "tags": ["manuscript", "sample-demo"]
     },
@@ -37,6 +38,7 @@
       "citation": "Sample dataset (offline demo). Not an institutional citation.",
       "relatedIds": ["AMB-SAM-001", "AMB-SAM-005"],
       "document": "documents/AMB-SAM-002-scan.pdf",
+      "pages": ["images/AMB-SAM-002-p1.jpg", "images/AMB-SAM-002-p2.jpg"],
       "ocrText": "[SAMPLE OCR] Placeholder extracted text for the digitized document. Search and RAG will operate on this field once the OCR pipeline is live.",
       "tags": ["document", "sample-demo"]
     },
@@ -105,6 +107,7 @@
       "relatedIds": ["AMB-SAM-002"],
       "image": "images/AMB-SAM-006.jpg",
       "document": "documents/AMB-SAM-006-volume.pdf",
+      "pages": ["images/AMB-SAM-006-p1.jpg", "images/AMB-SAM-006-p2.jpg", "images/AMB-SAM-006-p3.jpg"],
       "ocrText": "[SAMPLE OCR] Placeholder extracted text from the sample book volume.",
       "tags": ["book", "publication", "sample-demo"]
     },
@@ -122,8 +125,25 @@
       "citation": "Sample dataset (offline demo). Not an institutional citation.",
       "relatedIds": ["AMB-SAM-002", "AMB-SAM-005"],
       "document": "documents/AMB-SAM-007-letter.pdf",
+      "pages": ["images/AMB-SAM-007-p1.jpg"],
       "ocrText": "[SAMPLE OCR] Placeholder transcript of the sample letter.",
       "tags": ["letter", "correspondence", "sample-demo"]
+    },
+    {
+      "id": "AMB-SAM-008",
+      "type": 8,
+      "title": "[SAMPLE] Sample Video Record",
+      "description": "Placeholder record for a video archive item. Playback will stream from the archive backend in a later phase.",
+      "date": "",
+      "category": "Video Archive",
+      "source": "sample-dataset",
+      "language": "en",
+      "isSampleData": true,
+      "verified": false,
+      "citation": "Sample dataset (offline demo). Not an institutional citation.",
+      "relatedIds": ["AMB-SAM-004"],
+      "video": "video/AMB-SAM-008.mp4",
+      "tags": ["video", "sample-demo"]
     }
   ]
 }

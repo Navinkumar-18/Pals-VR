@@ -97,12 +97,19 @@ namespace AmbedkarHeritage.Core
         /// <summary>OCR-extracted text of the original document (Phase F pipeline output).</summary>
         public string ocrText;
 
+        /// <summary>
+        /// Ordered image-page references for the document viewer (multi-page).
+        /// Optional: when absent the viewer falls back to image/document refs.
+        /// </summary>
+        public List<string> pages;
+
         /// <summary>Free-form tags used by search/knowledge mapping.</summary>
         public List<string> tags;
 
         public ArchiveRecord()
         {
             relatedIds = new List<string>();
+            pages = new List<string>();
             tags = new List<string>();
         }
 
@@ -115,6 +122,11 @@ namespace AmbedkarHeritage.Core
             if (relatedIds == null)
             {
                 relatedIds = new List<string>();
+            }
+
+            if (pages == null)
+            {
+                pages = new List<string>();
             }
 
             if (tags == null)

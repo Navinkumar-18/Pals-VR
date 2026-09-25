@@ -90,7 +90,7 @@ namespace AmbedkarHeritage.Interaction
 
             for (int i = 0; i < record.relatedIds.Count; i++)
             {
-                ArchiveRecord found = DemoArchiveLoader.Instance.Find(record.relatedIds[i]);
+                ArchiveRecord found = ArchiveService.Find(record.relatedIds[i]);
                 if (found != null)
                 {
                     related.Add(found);

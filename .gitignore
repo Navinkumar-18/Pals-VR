@@ -89,6 +89,14 @@ secrets.*
 *.bundle
 *.unitypackage
 
+# Python backend (Phase D)
+__pycache__/
+*.py[cod]
+backend/.venv/
+backend/*.db
+backend/.pytest_cache/
+backend/storage/
+
 # IDE plugin assets
 *.ux
 *.log

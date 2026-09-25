@@ -98,6 +98,18 @@ namespace AmbedkarHeritage.Core
         public string ocrText;
 
         /// <summary>
+        /// Document-level OCR state (Phase E): NONE | PENDING | PROCESSING |
+        /// COMPLETED | FAILED. Empty/omitted = no OCR yet (backward compatible).
+        /// </summary>
+        public string ocrStatus;
+
+        /// <summary>Language code the OCR transcript was produced in ("en", "hi", "ta").</summary>
+        public string ocrLanguage;
+
+        /// <summary>Number of OCR result pages available via the archive API (0 = none).</summary>
+        public int ocrPages;
+
+        /// <summary>
         /// Ordered image-page references for the document viewer (multi-page).
         /// Optional: when absent the viewer falls back to image/document refs.
         /// </summary>

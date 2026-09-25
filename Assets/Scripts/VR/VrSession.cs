@@ -37,6 +37,7 @@ namespace AmbedkarHeritage.VR
                 _status.Append(" | L: ").Append(LeftControllerPresent ? "ok" : "--");
                 _status.Append(" | R: ").Append(RightControllerPresent ? "ok" : "--");
                 _status.Append(" | Mode: ").Append(Core.MuseumApp.IsDemoMode ? "DEMO" : "LIVE");
+                _status.Append(" | Data: ").Append(Core.ArchiveService.DataModeLabel);
                 return _status.ToString();
             }
         }

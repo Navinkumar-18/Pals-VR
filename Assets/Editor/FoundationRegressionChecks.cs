@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using AmbedkarHeritage.Core;
 using AmbedkarHeritage.ExhibitRoom;
 using AmbedkarHeritage.Interaction;
+using AmbedkarHeritage.Networking;
 using AmbedkarHeritage.UI;
 using AmbedkarHeritage.VR;
 using UnityEditor;
@@ -48,7 +49,14 @@ namespace AmbedkarHeritage.EditorTools
             Run("archive room builds into a scene", CheckArchiveRoomBuilds, ref passed, ref failed);
             Run("info panel formats metadata safely", CheckInfoPanelFormats, ref passed, ref failed);
             Run("document viewer plans pages safely", CheckDocumentViewerPlans, ref passed, ref failed);
+            Run("phase e ocr fields parse", CheckOcrFieldsParse, ref passed, ref failed);
+            Run("phase e viewer paginates long text", CheckOcrViewerPaginates, ref passed, ref failed);
             Run("scene contains archive room UI", CheckSceneContainsArchiveUI, ref passed, ref failed);
+            Run("data provider architecture (local + api)", CheckDataProviderArchitecture, ref passed, ref failed);
+            Run("api payload parses into archive records", CheckApiPayloadParses, ref passed, ref failed);
+            Run("offline demo fallback engages safely", CheckApiOfflineFallback, ref passed, ref failed);
+            Run("unity api integration (live)", CheckUnityApiIntegration, ref passed, ref failed);
+            Run("phase e live ocr integration", CheckUnityOcrIntegration, ref passed, ref failed);
 
             LastRunPassed = failed == 0;
 
@@ -763,6 +771,455 @@ namespace AmbedkarHeritage.EditorTools
             }
 
             return ok;
+        }
+
+        // ------------------------------------------------------------------
+        // Phase D: backend integration checks
+        // ------------------------------------------------------------------
+
+        private static bool CheckDataProviderArchitecture()
+        {
+            // Local provider wraps the demo dataset.
+            LocalArchiveDataProvider local = new LocalArchiveDataProvider();
+            if (local.ProviderName != "local-demo")
+            {
+                Debug.LogError("[AmbedkarHeritage] Local provider name mismatch.");
+                return false;
+            }
+
+            if (!ArchiveService.Local.IsReady)
+            {
+                ArchiveService.Local.Load();
+            }
+
+            if (!ArchiveService.Local.IsReady || ArchiveService.Local.AllRecords.Count < 8
+                || ArchiveService.Local.Find("AMB-SAM-008") == null)
+            {
+                Debug.LogError("[AmbedkarHeritage] Local demo provider did not load the sample dataset.");
+                return false;
+            }
+
+            // API provider exists, starts unloaded and is null-safe.
+            ApiArchiveDataProvider api = new ApiArchiveDataProvider();
+            if (api.ProviderName != "api" || api.IsReady || api.Find("AMB-SAM-001") != null)
+            {
+                Debug.LogError("[AmbedkarHeritage] API provider default state wrong.");
+                return false;
+            }
+
+            // ArchiveService selects the local provider in demo mode.
+            bool originalDemo = MuseumApp.IsDemoMode;
+            try
+            {
+                MuseumApp.IsDemoMode = true;
+                ArchiveService.ForceReinitialize();
+                if (!(ArchiveService.Current is LocalArchiveDataProvider) || ArchiveService.IsOfflineFallback)
+                {
+                    Debug.LogError("[AmbedkarHeritage] Demo mode did not activate the local provider.");
+                    return false;
+                }
+
+                if (ArchiveService.Find("AMB-SAM-001") == null
+                    || ArchiveService.DataModeLabel != "DEMO")
+                {
+                    Debug.LogError("[AmbedkarHeritage] Demo-mode data lookup failed.");
+                    return false;
+                }
+
+                return true;
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError("[AmbedkarHeritage] Provider architecture check threw: " + exception.Message);
+                return false;
+            }
+            finally
+            {
+                MuseumApp.IsDemoMode = originalDemo;
+                ArchiveService.ForceReinitialize();
+            }
+        }
+
+        private static bool CheckApiPayloadParses()
+        {
+            // Canned FastAPI /api/documents payload (camelCase, numeric type).
+            const string payload =
+                "{\"items\":[" +
+                "{\"id\":\"API-DOC-1\",\"type\":1,\"title\":\"API Manuscript\",\"description\":\"from backend\"," +
+                "\"date\":\"1916\",\"category\":\"Manuscripts\",\"source\":\"api\",\"language\":\"en\"," +
+                "\"isSampleData\":true,\"verified\":true,\"status\":\"PUBLISHED\",\"citation\":\"api\",\"tags\":[\"ms\"]," +
+                "\"relatedIds\":[\"API-DOC-2\"],\"image\":\"images/api-doc-1.jpg\",\"pages\":[\"images/api-doc-1-p1.jpg\"]," +
+                "\"ocrText\":\"sample ocr\"}," +
+                "{\"id\":\"API-DOC-2\",\"type\":5,\"title\":\"API Document\",\"description\":\"d\",\"date\":\"\",\"category\":\"\",\"source\":\"\",\"language\":\"en\",\"isSampleData\":false,\"verified\":false,\"status\":\"PUBLISHED\",\"tags\":[],\"relatedIds\":[]}" +
+                "],\"count\":2}";
+
+            try
+            {
+                ApiDocumentListDto dto = JsonUtility.FromJson<ApiDocumentListDto>(payload);
+                if (dto == null || dto.items == null || dto.items.Count != 2 || dto.count != 2)
+                {
+                    Debug.LogError("[AmbedkarHeritage] API list wrapper failed to parse.");
+                    return false;
+                }
+
+                ArchiveRecord first = dto.items[0];
+                if (first.type != ArchiveRecordType.Manuscript || !first.isSampleData || !first.verified)
+                {
+                    Debug.LogError("[AmbedkarHeritage] Numeric type / flags mapping failed.");
+                    return false;
+                }
+
+                if (first.relatedIds == null || first.relatedIds.Count != 1 || first.relatedIds[0] != "API-DOC-2"
+                    || first.pages == null || first.pages.Count != 1 || string.IsNullOrEmpty(first.ocrText)
+                    || first.tags == null || first.tags.Count != 1)
+                {
+                    Debug.LogError("[AmbedkarHeritage] Extended fields did not parse from API payload.");
+                    return false;
+                }
+
+                if (dto.items[1].type != ArchiveRecordType.Document)
+                {
+                    Debug.LogError("[AmbedkarHeritage] Second record type mapping failed.");
+                    return false;
+                }
+
+                first.EnsureSafeDefaults(); // must not throw
+                return true;
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError("[AmbedkarHeritage] API payload check threw: " + exception.Message);
+                return false;
+            }
+        }
+
+        private static bool CheckApiOfflineFallback()
+        {
+            bool originalDemo = MuseumApp.IsDemoMode;
+            string originalBase = MuseumApp.ApiBaseUrl;
+            try
+            {
+                // API mode against an unroutable endpoint.
+                MuseumApp.IsDemoMode = false;
+                MuseumApp.ApiBaseUrl = "http://127.0.0.1:1/api";
+                string error;
+                bool online = ArchiveService.ProbeOnlineSync(out error, 5f);
+                if (online)
+                {
+                    Debug.LogError("[AmbedkarHeritage] Offline probe unexpectedly connected to port 1.");
+                    return false;
+                }
+
+                if (!ArchiveService.IsOfflineFallback || ArchiveService.Current == null)
+                {
+                    Debug.LogError("[AmbedkarHeritage] Offline fallback was not engaged after failed probe: " + error);
+                    return false;
+                }
+
+                ArchiveRecord sample = ArchiveService.Find("AMB-SAM-001");
+                if (sample == null || !ArchiveService.DataModeLabel.Contains("OFFLINE"))
+                {
+                    Debug.LogError("[AmbedkarHeritage] Offline demo data unavailable in fallback mode.");
+                    return false;
+                }
+
+                return true;
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError("[AmbedkarHeritage] Offline fallback check threw: " + exception.Message);
+                return false;
+            }
+            finally
+            {
+                MuseumApp.IsDemoMode = originalDemo;
+                MuseumApp.ApiBaseUrl = originalBase;
+                ArchiveService.ForceReinitialize();
+            }
+        }
+
+        private static bool CheckUnityApiIntegration()
+        {
+            // Live end-to-end: FastAPI -> PostgreSQL/SQLite -> JSON -> Unity.
+            // Env var set by CI / the Phase D run script; otherwise skipped.
+            string url = System.Environment.GetEnvironmentVariable("AMBEKAR_API_URL");
+            if (string.IsNullOrEmpty(url))
+            {
+                Debug.Log("[AmbedkarHeritage] [INFO] AMBEKAR_API_URL not set — live API check skipped (offline path covered above).");
+                return true;
+            }
+
+            bool originalDemo = MuseumApp.IsDemoMode;
+            string originalBase = MuseumApp.ApiBaseUrl;
+            try
+            {
+                MuseumApp.IsDemoMode = false;
+                MuseumApp.ApiBaseUrl = url.TrimEnd('/');
+                string error;
+                if (!ArchiveService.ProbeOnlineSync(out error, 30f))
+                {
+                    Debug.LogError("[AmbedkarHeritage] Live API unreachable: " + error);
+                    return false;
+                }
+
+                ArchiveRecord seed = ArchiveService.Find("AMB-SAM-001");
+                if (seed == null || string.IsNullOrEmpty(seed.title))
+                {
+                    Debug.LogError("[AmbedkarHeritage] Seeded record AMB-SAM-001 missing from API.");
+                    return false;
+                }
+
+                ArchiveRecord doc = ArchiveService.Find("AMB-SAM-002");
+                if (doc == null || doc.type != ArchiveRecordType.Document || doc.date != "1916")
+                {
+                    Debug.LogError("[AmbedkarHeritage] API record mapping mismatch for AMB-SAM-002.");
+                    return false;
+                }
+
+                if (seed.relatedIds == null || seed.relatedIds.Count == 0
+                    || ArchiveService.Find(seed.relatedIds[0]) == null)
+                {
+                    Debug.LogError("[AmbedkarHeritage] relatedIds from the API do not resolve locally.");
+                    return false;
+                }
+
+                Debug.Log("[AmbedkarHeritage] Live API integration OK: " + ArchiveService.All.Count
+                          + " record(s) served by the backend.");
+                return true;
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError("[AmbedkarHeritage] Live API integration check threw: " + exception.Message);
+                return false;
+            }
+            finally
+            {
+                MuseumApp.IsDemoMode = originalDemo;
+                MuseumApp.ApiBaseUrl = originalBase;
+                ArchiveService.ForceReinitialize();
+            }
+        }
+
+        private static bool CheckOcrFieldsParse()
+        {
+            // Phase E ArchiveRecord fields must deserialize from API-style JSON.
+            const string json = "{\"id\":\"OCR-TEST-001\",\"type\":5,\"title\":\"OCR field test\","
+                + "\"ocrText\":\"Extracted page text\",\"ocrStatus\":\"COMPLETED\","
+                + "\"ocrLanguage\":\"en\",\"ocrPages\":3}";
+            try
+            {
+                ArchiveRecord record = JsonUtility.FromJson<ArchiveRecord>(json);
+                if (record == null)
+                {
+                    Debug.LogError("[AmbedkarHeritage] OCR field payload did not parse.");
+                    return false;
+                }
+
+                record.EnsureSafeDefaults();
+                bool ok = record.ocrStatus == "COMPLETED"
+                          && record.ocrLanguage == "en"
+                          && record.ocrPages == 3
+                          && record.ocrText == "Extracted page text";
+                if (!ok)
+                {
+                    Debug.LogError("[AmbedkarHeritage] OCR fields deserialized to unexpected values.");
+                }
+
+                return ok;
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError("[AmbedkarHeritage] OCR field parse check threw: " + exception.Message);
+                return false;
+            }
+        }
+
+        private static bool CheckOcrViewerPaginates()
+        {
+            try
+            {
+                // Very long OCR transcript -> multiple, marked text pages.
+                System.Text.StringBuilder longText = new System.Text.StringBuilder();
+                for (int i = 0; i < DocumentViewer.TextPageChars * 4; i++)
+                {
+                    longText.Append((char)('A' + (i % 26)));
+                }
+
+                ArchiveRecord longDoc = new ArchiveRecord
+                {
+                    id = "OCR-LONG-001",
+                    type = ArchiveRecordType.Document,
+                    title = "Long OCR document",
+                    ocrText = longText.ToString()
+                };
+                List<DocumentViewer.ViewerPage> pages = DocumentViewer.PlanPages(longDoc);
+                int textPages = 0;
+                foreach (DocumentViewer.ViewerPage page in pages)
+                {
+                    if (page.kind == DocumentViewer.ViewerPage.Kind.Text)
+                    {
+                        textPages++;
+                    }
+                }
+
+                if (textPages < 4)
+                {
+                    Debug.LogError("[AmbedkarHeritage] Long OCR text was not paginated into multiple text pages.");
+                    return false;
+                }
+
+                // Every chunk body (excluding the "OCR TEXT - PART n / m" header)
+                // must stay within the readability cap, and every sub-page must
+                // carry a PART marker so the reader knows where they are.
+                for (int i = 0; i < pages.Count; i++)
+                {
+                    // Strip the "OCR TEXT - PART n / m" header. The header is
+                    // joined with Environment.NewLine (\r\n on Windows), so skip
+                    // any run of \r/\n to reach the chunk body.
+                    string body = pages[i].text ?? "";
+                    int nl = body.IndexOf('\n');
+                    if (nl >= 0)
+                    {
+                        int start = nl;
+                        while (start < body.Length && (body[start] == '\n' || body[start] == '\r'))
+                        {
+                            start++;
+                        }
+
+                        body = body.Substring(start);
+                    }
+
+                    if (body.Length > DocumentViewer.TextPageChars)
+                    {
+                        Debug.LogError("[AmbedkarHeritage] OCR text page exceeds the readability cap (" + body.Length + ").");
+                        return false;
+                    }
+
+                    if (!pages[i].text.Contains("PART " + (i + 1) + " /"))
+                    {
+                        Debug.LogError("[AmbedkarHeritage] Paginated OCR pages lack PART markers.");
+                        return false;
+                    }
+                }
+
+                // Short transcript -> exactly ONE trailing text page (backward compatible).
+                ArchiveRecord shortDoc = new ArchiveRecord
+                {
+                    id = "OCR-SHORT-001",
+                    type = ArchiveRecordType.Document,
+                    title = "Short",
+                    ocrText = "Short OCR body."
+                };
+                List<DocumentViewer.ViewerPage> shortPages = DocumentViewer.PlanPages(shortDoc);
+                if (shortPages.Count != 1
+                    || shortPages[0].kind != DocumentViewer.ViewerPage.Kind.Text
+                    || !shortPages[0].text.Contains("Short OCR body."))
+                {
+                    Debug.LogError("[AmbedkarHeritage] Short OCR text should stay on a single text page.");
+                    return false;
+                }
+
+                return true;
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError("[AmbedkarHeritage] Phase E viewer pagination check threw: " + exception.Message);
+                return false;
+            }
+        }
+
+        private static bool CheckUnityOcrIntegration()
+        {
+            // Live end-to-end: FastAPI OCR endpoints -> JsonUtility DTOs.
+            // Needs a PUBLISHED, OCR-COMPLETED document on the backend; without
+            // one (or without AMBEKAR_API_URL set) this check is skipped.
+            string url = System.Environment.GetEnvironmentVariable("AMBEKAR_API_URL");
+            if (string.IsNullOrEmpty(url))
+            {
+                Debug.Log("[AmbedkarHeritage] [INFO] AMBEKAR_API_URL not set — live OCR check skipped.");
+                return true;
+            }
+
+            bool originalDemo = MuseumApp.IsDemoMode;
+            string originalBase = MuseumApp.ApiBaseUrl;
+            try
+            {
+                MuseumApp.IsDemoMode = false;
+                MuseumApp.ApiBaseUrl = url.TrimEnd('/');
+                string error;
+                if (!ArchiveService.ProbeOnlineSync(out error, 30f))
+                {
+                    Debug.LogError("[AmbedkarHeritage] Live API unreachable for OCR check: " + error);
+                    return false;
+                }
+
+                ArchiveRecord ocrDoc = null;
+                foreach (ArchiveRecord record in ArchiveService.All)
+                {
+                    if (record.ocrStatus == "COMPLETED" && record.ocrPages > 0)
+                    {
+                        ocrDoc = record;
+                        break;
+                    }
+                }
+
+                if (ocrDoc == null)
+                {
+                    Debug.Log("[AmbedkarHeritage] [INFO] No OCR-COMPLETED document on the live backend — OCR e2e skipped (schema checks above).");
+                    return true;
+                }
+
+                ApiOcrStatusDto status;
+                if (!ArchiveApiClient.TryGetOcrStatusSyncEditor(MuseumApp.ApiBaseUrl, ocrDoc.id, out status, out error))
+                {
+                    Debug.LogError("[AmbedkarHeritage] OCR status fetch failed for " + ocrDoc.id + ": " + error);
+                    return false;
+                }
+
+                if (status.status != "COMPLETED" || status.pages <= 0
+                    || status.pageSummaries == null || status.pageSummaries.Count != status.pages
+                    || status.pageSummaries[0].pageNumber != 1)
+                {
+                    Debug.LogError("[AmbedkarHeritage] OCR status mismatched expectations for " + ocrDoc.id
+                        + ": status=" + status.status + " pages=" + status.pages
+                        + " summaries=" + (status.pageSummaries == null ? 0 : status.pageSummaries.Count));
+                    return false;
+                }
+
+                ApiOcrPageDto page;
+                if (!ArchiveApiClient.TryGetOcrPageSyncEditor(MuseumApp.ApiBaseUrl, ocrDoc.id, 1, out page, out error))
+                {
+                    Debug.LogError("[AmbedkarHeritage] OCR page 1 fetch failed for " + ocrDoc.id + ": " + error);
+                    return false;
+                }
+
+                if (page.pageNumber != 1 || string.IsNullOrEmpty(page.extractedText))
+                {
+                    Debug.LogError("[AmbedkarHeritage] OCR page 1 payload invalid for " + ocrDoc.id);
+                    return false;
+                }
+
+                string previewText = page.extractedText.Replace('\n', ' ').Trim();
+                if (previewText.Length > 60)
+                {
+                    previewText = previewText.Substring(0, 60);
+                }
+
+                Debug.Log("[AmbedkarHeritage] Live OCR e2e OK: " + ocrDoc.id + " (" + status.pages
+                          + " page(s), page 1: \"" + previewText + "...\")");
+                return true;
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError("[AmbedkarHeritage] Live OCR integration check threw: " + exception.Message);
+                return false;
+            }
+            finally
+            {
+                MuseumApp.IsDemoMode = originalDemo;
+                MuseumApp.ApiBaseUrl = originalBase;
+                ArchiveService.ForceReinitialize();
+            }
         }
 
         private static GameObject FindChildRecursive(Transform root, string name)

@@ -9,7 +9,7 @@ namespace AmbedkarHeritage.Interaction
     /// <summary>
     /// Central world-space archive information panel. Any exhibit (or related
     /// record) can be opened here. Shows TITLE / Date / Category / Description /
-    /// Source plus the action row [VIEW ORIGINAL] [READ TEXT] [LISTEN]
+    /// Source plus the action row [VIEW ORIGINAL] [READ OCR TEXT] [LISTEN]
     /// [TRANSLATE] [RELATED CONTENT] [ASK AI] [CLOSE].
     ///
     /// Features that arrive in later phases show an honest
@@ -302,10 +302,27 @@ namespace AmbedkarHeritage.Interaction
 
         public static string FormatMeta(ArchiveRecord record)
         {
-            return "Date: " + (string.IsNullOrEmpty(record.date) ? "n/a" : record.date)
-                   + "   |   Category: " + (string.IsNullOrEmpty(record.category) ? "n/a" : record.category)
-                   + "   |   Type: " + record.type
-                   + "   |   Language: " + (string.IsNullOrEmpty(record.language) ? "n/a" : record.language);
+            string meta = "Date: " + (string.IsNullOrEmpty(record.date) ? "n/a" : record.date)
+                          + "   |   Category: " + (string.IsNullOrEmpty(record.category) ? "n/a" : record.category)
+                          + "   |   Type: " + record.type
+                          + "   |   Language: " + (string.IsNullOrEmpty(record.language) ? "n/a" : record.language);
+
+            // Phase E: surface the document-level OCR state on the info panel.
+            string ocrStatus = record.ocrStatus;
+            if (!string.IsNullOrEmpty(ocrStatus) && ocrStatus != "NONE")
+            {
+                meta += "   |   OCR: " + ocrStatus;
+                if (record.ocrPages > 0)
+                {
+                    meta += " (" + record.ocrPages + " page" + (record.ocrPages == 1 ? "" : "s") + ")";
+                }
+                if (!string.IsNullOrEmpty(record.ocrLanguage))
+                {
+                    meta += " [" + record.ocrLanguage + "]";
+                }
+            }
+
+            return meta;
         }
 
         public static string FormatSource(ArchiveRecord record)

@@ -11,12 +11,16 @@ namespace AmbedkarHeritage.Interaction
     /// <summary>
     /// Reusable world-space document viewer. Displays image pages (from
     /// record.pages / image / document references) or text pages (transcripts /
-    /// metadata) with zoom, previous/next paging and close. Texture loading is
-    /// asynchronous where possible and never loads more than one texture at a
-    /// time. Missing media shows an honest placeholder page instead of failing.
+    /// OCR output / metadata) with zoom, previous/next paging and close. Long
+    /// OCR transcripts are split into multiple readable text pages
+    /// (Phase E: READ OCR TEXT). Texture loading is asynchronous where possible
+    /// and never loads more than one texture at a time. Missing media shows an
+    /// honest placeholder page instead of failing.
     /// </summary>
     public sealed class DocumentViewer : MonoBehaviour
     {
+        /// <summary>Max characters per text page — keeps VR text readable.</summary>
+        public const int TextPageChars = 2200;
         public sealed class ViewerPage
         {
             public enum Kind { Image, Text }
@@ -206,7 +210,7 @@ namespace AmbedkarHeritage.Interaction
 
             if (pageCounterText != null)
             {
-                pageCounterText.text = "Page " + (_index + 1) + " / " + _pages.Count;
+                pageCounterText.text = "PAGE " + (_index + 1) + " / " + _pages.Count;
             }
 
             if (pageImage != null && pageImage.texture != null)
@@ -376,9 +380,82 @@ namespace AmbedkarHeritage.Interaction
                 body.Append("No transcript/OCR text for this demo record. The OCR pipeline will add text in a later phase.");
             }
 
-            pages.Add(new ViewerPage { kind = ViewerPage.Kind.Text, text = body.ToString() });
+            // Long transcripts are split into multiple readable text pages.
+            pages.AddRange(SplitIntoTextPages(body.ToString()));
 
             return pages;
+        }
+
+        /// <summary>
+        /// Splits a (possibly very long) text page body into one or more
+        /// readable text pages (Phase E: READ OCR TEXT pagination). Short text
+        /// stays on a single page — fully backward compatible with the original
+        /// single trailing text page.
+        /// </summary>
+        public static List<ViewerPage> SplitIntoTextPages(string fullText)
+        {
+            List<ViewerPage> result = new List<ViewerPage>();
+            if (string.IsNullOrEmpty(fullText))
+            {
+                result.Add(new ViewerPage { kind = ViewerPage.Kind.Text, text = "" });
+                return result;
+            }
+
+            if (fullText.Length <= TextPageChars)
+            {
+                result.Add(new ViewerPage { kind = ViewerPage.Kind.Text, text = fullText });
+                return result;
+            }
+
+            // Chunk on line boundaries when possible so OCR paragraphs are not
+            // sliced mid-sentence; any chunk that is still over budget after a
+            // pass (e.g. one enormous single line) is hard-split to the cap.
+            string[] lines = fullText.Split('\n');
+            List<string> chunks = new List<string>();
+            StringBuilder current = new StringBuilder();
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string line = i == 0 ? lines[i] : "\n" + lines[i];
+                if (current.Length > 0 && current.Length + line.Length > TextPageChars)
+                {
+                    chunks.Add(current.ToString());
+                    current.Length = 0;
+                }
+
+                current.Append(line);
+            }
+
+            if (current.Length > 0)
+            {
+                chunks.Add(current.ToString());
+            }
+
+            for (int i = 0; i < chunks.Count; i++)
+            {
+                if (chunks[i].Length <= TextPageChars)
+                {
+                    continue;
+                }
+
+                string overflow = chunks[i];
+                chunks[i] = overflow.Substring(0, TextPageChars);
+                chunks.Insert(i + 1, overflow.Substring(TextPageChars));
+            }
+
+            for (int i = 0; i < chunks.Count; i++)
+            {
+                string text = chunks[i];
+                if (chunks.Count > 1)
+                {
+                    // Mark OCR sub-pages so the reader knows where they are.
+                    text = "OCR TEXT - PART " + (i + 1) + " / " + chunks.Count
+                           + System.Environment.NewLine + System.Environment.NewLine + text;
+                }
+
+                result.Add(new ViewerPage { kind = ViewerPage.Kind.Text, text = text });
+            }
+
+            return result;
         }
     }
 }

@@ -22,12 +22,20 @@ namespace AmbedkarHeritage.Core
             Instance = this;
 
             EnsureOvrManager();
+            // Local demo JSON is ALWAYS loaded once: it carries MuseumApp
+            // config (app name, welcome message) and the offline dataset.
             DemoArchiveLoader.Instance.Load();
+
+            // Select the archive provider (DEMO vs API) and start loading
+            // records; falls back to "Offline Demo Mode" if the API is
+            // unreachable. Exhibit interaction code is provider-agnostic.
+            ArchiveService.Initialize();
 
             ApplyConfigToScene();
 
             Debug.Log("[AmbedkarHeritage] Bootstrap complete. AppName=" + MuseumApp.AppName
-                      + " | Mode=" + (MuseumApp.IsDemoMode ? "DEMO" : "LIVE"));
+                      + " | Mode=" + (MuseumApp.IsDemoMode ? "DEMO" : "LIVE")
+                      + " | Data=" + ArchiveService.DataModeLabel);
         }
 
         private static void EnsureOvrManager()

@@ -15,7 +15,13 @@
       "source": "sample-dataset",
       "language": "en",
       "isSampleData": true,
-      "relatedIds": ["AMB-SAM-002"]
+      "verified": false,
+      "citation": "Sample dataset (offline demo). Not an institutional citation.",
+      "relatedIds": ["AMB-SAM-002"],
+      "image": "images/AMB-SAM-001.jpg",
+      "document": "documents/AMB-SAM-001-scan.pdf",
+      "ocrText": "[SAMPLE OCR] Placeholder transcript for the sample manuscript. The real OCR pipeline will replace this text.",
+      "tags": ["manuscript", "sample-demo"]
     },
     {
       "id": "AMB-SAM-002",
@@ -27,7 +33,12 @@
       "source": "sample-dataset",
       "language": "en",
       "isSampleData": true,
-      "relatedIds": ["AMB-SAM-001", "AMB-SAM-005"]
+      "verified": false,
+      "citation": "Sample dataset (offline demo). Not an institutional citation.",
+      "relatedIds": ["AMB-SAM-001", "AMB-SAM-005"],
+      "document": "documents/AMB-SAM-002-scan.pdf",
+      "ocrText": "[SAMPLE OCR] Placeholder extracted text for the digitized document. Search and RAG will operate on this field once the OCR pipeline is live.",
+      "tags": ["document", "sample-demo"]
     },
     {
       "id": "AMB-SAM-003",
@@ -39,7 +50,11 @@
       "source": "sample-dataset",
       "language": "en",
       "isSampleData": true,
-      "relatedIds": []
+      "verified": false,
+      "citation": "Sample dataset (offline demo). Not an institutional citation.",
+      "relatedIds": [],
+      "image": "images/AMB-SAM-003.jpg",
+      "tags": ["photograph", "sample-demo"]
     },
     {
       "id": "AMB-SAM-004",
@@ -51,7 +66,13 @@
       "source": "sample-dataset",
       "language": "en",
       "isSampleData": true,
-      "relatedIds": ["AMB-SAM-005"]
+      "verified": false,
+      "citation": "Sample dataset (offline demo). Not an institutional citation.",
+      "relatedIds": ["AMB-SAM-005"],
+      "audio": "audio/AMB-SAM-004.mp3",
+      "document": "documents/AMB-SAM-004-transcript.pdf",
+      "ocrText": "[SAMPLE] Placeholder speech transcript text.",
+      "tags": ["speech", "audio", "sample-demo"]
     },
     {
       "id": "AMB-SAM-005",
@@ -63,7 +84,46 @@
       "source": "sample-dataset",
       "language": "en",
       "isSampleData": true,
-      "relatedIds": ["AMB-SAM-002", "AMB-SAM-004"]
+      "verified": false,
+      "citation": "Sample dataset (offline demo). Not an institutional citation.",
+      "relatedIds": ["AMB-SAM-002", "AMB-SAM-004"],
+      "eventId": "TL-1891",
+      "tags": ["timeline", "event", "sample-demo"]
+    },
+    {
+      "id": "AMB-SAM-006",
+      "type": 2,
+      "title": "[SAMPLE] Sample Book Record",
+      "description": "Placeholder record for a book volume in the collection. Demonstrates the extended multimedia, OCR and citation fields.",
+      "date": "",
+      "category": "Books",
+      "source": "sample-dataset",
+      "language": "en",
+      "isSampleData": true,
+      "verified": false,
+      "citation": "Sample dataset (offline demo). Not an institutional citation.",
+      "relatedIds": ["AMB-SAM-002"],
+      "image": "images/AMB-SAM-006.jpg",
+      "document": "documents/AMB-SAM-006-volume.pdf",
+      "ocrText": "[SAMPLE OCR] Placeholder extracted text from the sample book volume.",
+      "tags": ["book", "publication", "sample-demo"]
+    },
+    {
+      "id": "AMB-SAM-007",
+      "type": 4,
+      "title": "[SAMPLE] Sample Letter Record",
+      "description": "Placeholder record for a piece of correspondence. Demonstrates records without full multimedia coverage.",
+      "date": "",
+      "category": "Correspondence",
+      "source": "sample-dataset",
+      "language": "en",
+      "isSampleData": true,
+      "verified": false,
+      "citation": "Sample dataset (offline demo). Not an institutional citation.",
+      "relatedIds": ["AMB-SAM-002", "AMB-SAM-005"],
+      "document": "documents/AMB-SAM-007-letter.pdf",
+      "ocrText": "[SAMPLE OCR] Placeholder transcript of the sample letter.",
+      "tags": ["letter", "correspondence", "sample-demo"]
     }
   ]
 }

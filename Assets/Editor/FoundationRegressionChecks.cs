@@ -37,6 +37,8 @@ namespace AmbedkarHeritage.EditorTools
             Run("museum config applies to MuseumApp", CheckConfigApplies, ref passed, ref failed);
             Run("build settings contain MainMuseum", CheckBuildSettings, ref passed, ref failed);
             Run("build scenes contain core objects", CheckScenesContainCoreObjects, ref passed, ref failed);
+            Run("extended archive fields parse", CheckExtendedFieldsParse, ref passed, ref failed);
+            Run("minimal record loads safely", CheckMinimalRecordLoadsSafely, ref passed, ref failed);
 
             LastRunPassed = failed == 0;
 
@@ -101,18 +103,23 @@ namespace AmbedkarHeritage.EditorTools
 
         private static bool CheckSampleRecordsValid()
         {
-            TextAsset asset = Resources.Load<TextAsset>(SampleResourcePath);
-            DemoArchiveData data = JsonUtility.FromJson<DemoArchiveData>(asset.text);
-            if (data == null || data.records == null || data.records.Count == 0)
+            // Exercise the actual runtime path (loader normalizes records).
+            DemoArchiveLoader loader = DemoArchiveLoader.Instance;
+            loader.Load();
+
+            if (loader.Records == null || loader.Records.Count < 5)
             {
+                Debug.LogError("[AmbedkarHeritage] Loader returned too few records: " +
+                               (loader.Records == null ? 0 : loader.Records.Count));
                 return false;
             }
 
             HashSet<string> ids = new HashSet<string>();
-            foreach (ArchiveRecord record in data.records)
+            foreach (ArchiveRecord record in loader.Records)
             {
                 if (string.IsNullOrEmpty(record.id))
                 {
+                    Debug.LogError("[AmbedkarHeritage] Record without id.");
                     return false;
                 }
 
@@ -127,9 +134,103 @@ namespace AmbedkarHeritage.EditorTools
                     Debug.LogError("[AmbedkarHeritage] Record " + record.id + " has unresolved type.");
                     return false;
                 }
+
+                // Missing optional fields must normalize to empty (never null).
+                if (record.tags == null || record.relatedIds == null)
+                {
+                    Debug.LogError("[AmbedkarHeritage] Record " + record.id +
+                                   " has null collections after normalization.");
+                    return false;
+                }
             }
 
             return true;
+        }
+
+        private static bool CheckExtendedFieldsParse()
+        {
+            DemoArchiveLoader loader = DemoArchiveLoader.Instance;
+            loader.Load();
+
+            ArchiveRecord book = loader.Find("AMB-SAM-006");
+            ArchiveRecord speech = loader.Find("AMB-SAM-004");
+            ArchiveRecord timeEvent = loader.Find("AMB-SAM-005");
+            ArchiveRecord photo = loader.Find("AMB-SAM-003");
+
+            if (book == null || speech == null || timeEvent == null || photo == null)
+            {
+                Debug.LogError("[AmbedkarHeritage] Extended-field records missing from demo archive.");
+                return false;
+            }
+
+            bool ok = true;
+            ok &= book.type == ArchiveRecordType.Book;
+            ok &= !string.IsNullOrEmpty(book.image);
+            ok &= !string.IsNullOrEmpty(book.document);
+            ok &= !string.IsNullOrEmpty(book.ocrText);
+            ok &= book.tags != null && book.tags.Count >= 2;
+            ok &= !string.IsNullOrEmpty(book.citation);
+            ok &= book.verified == false;
+
+            ok &= !string.IsNullOrEmpty(speech.audio);
+            ok &= !string.IsNullOrEmpty(speech.ocrText);
+
+            ok &= timeEvent.eventId == "TL-1891";
+            ok &= timeEvent.tags != null && timeEvent.tags.Count >= 2;
+
+            ok &= !string.IsNullOrEmpty(photo.image);
+            ok &= photo.audio == null && photo.video == null; // omitted fields stay null
+
+            if (!ok)
+            {
+                Debug.LogError("[AmbedkarHeritage] Extended archive fields did not deserialize as expected.");
+            }
+
+            return ok;
+        }
+
+        private static bool CheckMinimalRecordLoadsSafely()
+        {
+            const string minimalJson =
+                "{\"id\":\"MIN-001\",\"title\":\"Minimal\",\"description\":\"No optional fields set.\"}";
+
+            try
+            {
+                ArchiveRecord record = JsonUtility.FromJson<ArchiveRecord>(minimalJson);
+                if (record == null)
+                {
+                    Debug.LogError("[AmbedkarHeritage] Minimal JSON produced a null record.");
+                    return false;
+                }
+
+                // Optional fields must never be fatal or malformed.
+                if (record.relatedIds == null || record.tags == null)
+                {
+                    Debug.LogError("[AmbedkarHeritage] Minimal record has null collections.");
+                    return false;
+                }
+
+                if (!string.IsNullOrEmpty(record.image)
+                    || !string.IsNullOrEmpty(record.audio)
+                    || !string.IsNullOrEmpty(record.video)
+                    || !string.IsNullOrEmpty(record.document)
+                    || !string.IsNullOrEmpty(record.ocrText)
+                    || !string.IsNullOrEmpty(record.eventId)
+                    || record.verified
+                    || !string.IsNullOrEmpty(record.citation))
+                {
+                    Debug.LogError("[AmbedkarHeritage] Minimal record got unexpected populated fields.");
+                    return false;
+                }
+
+                record.EnsureSafeDefaults(); // must be idempotent and safe
+                return record.tags != null && record.relatedIds != null;
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError("[AmbedkarHeritage] Minimal JSON threw: " + exception.Message);
+                return false;
+            }
         }
 
         private static bool CheckRecordTypeParsing()

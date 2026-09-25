@@ -1,0 +1,65 @@
+{
+  "room": {
+    "roomName": "Archive Room (Demo)",
+    "accentColor": [0.55, 0.35, 0.12],
+    "boardColor": [0.2, 0.42, 0.55],
+    "stations": [
+      {
+        "exhibitId": "AMB-SAM-001",
+        "displayType": "manuscript",
+        "position": [-6.3, 0, 2.6],
+        "rotation": [0, 180, 0],
+        "scale": 1
+      },
+      {
+        "exhibitId": "AMB-SAM-002",
+        "displayType": "document",
+        "position": [-4.5, 0, 2.6],
+        "rotation": [0, 180, 0],
+        "scale": 1
+      },
+      {
+        "exhibitId": "AMB-SAM-003",
+        "displayType": "photograph",
+        "position": [-2.7, 0, 2.6],
+        "rotation": [0, 180, 0],
+        "scale": 1
+      },
+      {
+        "exhibitId": "AMB-SAM-004",
+        "displayType": "speech",
+        "position": [-0.9, 0, 2.6],
+        "rotation": [0, 180, 0],
+        "scale": 1
+      },
+      {
+        "exhibitId": "AMB-SAM-008",
+        "displayType": "video",
+        "position": [0.9, 0, 2.6],
+        "rotation": [0, 180, 0],
+        "scale": 1
+      },
+      {
+        "exhibitId": "AMB-SAM-006",
+        "displayType": "book",
+        "position": [2.7, 0, 2.6],
+        "rotation": [0, 180, 0],
+        "scale": 1
+      },
+      {
+        "exhibitId": "AMB-SAM-007",
+        "displayType": "letter",
+        "position": [4.5, 0, 2.6],
+        "rotation": [0, 180, 0],
+        "scale": 1
+      },
+      {
+        "exhibitId": "AMB-SAM-005",
+        "displayType": "event",
+        "position": [6.3, 0, 2.6],
+        "rotation": [0, 180, 0],
+        "scale": 1
+      }
+    ]
+  }
+}

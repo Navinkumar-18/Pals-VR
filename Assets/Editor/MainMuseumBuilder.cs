@@ -1,5 +1,6 @@
 using System.IO;
 using AmbedkarHeritage.Core;
+using AmbedkarHeritage.ExhibitRoom;
 using AmbedkarHeritage.Interaction;
 using AmbedkarHeritage.UI;
 using AmbedkarHeritage.VR;
@@ -17,8 +18,6 @@ namespace AmbedkarHeritage.EditorTools
         private const string ExhibitPrefabPath = "Assets/Prefabs/Exhibits/Exhibit.prefab";
         private const string MaterialsDir = "Assets/Materials";
 
-        private static readonly string[] ExhibitIds = { "AMB-SAM-001", "AMB-SAM-002", "AMB-SAM-003" };
-
         [MenuItem("Ambedkar Heritage/Build MainMuseum Scene")]
         public static void BuildMainMuseum()
         {
@@ -33,7 +32,7 @@ namespace AmbedkarHeritage.EditorTools
             CreateOvrRig();
             CreateEntranceSign();
             CreateExhibitPrefab();
-            PlaceExhibits(world);
+            MuseumRoomBuilder.BuildMuseumRoom(world);
             CreateGrabBall();
             FoundationRegistrar.AddMissingCoreObjects();
 
@@ -240,7 +239,7 @@ namespace AmbedkarHeritage.EditorTools
 
             ExhibitController controller = exhibit.AddComponent<ExhibitController>();
             SerializedObject controllerSo = new SerializedObject(controller);
-            controllerSo.FindProperty("archiveRecordId").stringValue = ExhibitIds[0];
+            controllerSo.FindProperty("archiveRecordId").stringValue = "AMB-SAM-001";
             controllerSo.FindProperty("infoPanel").objectReferenceValue = panel.transform;
             Bind(controllerSo, panel,
                 ("titleLabel", "TitleText"),
@@ -288,29 +287,6 @@ namespace AmbedkarHeritage.EditorTools
 
             panel.SetActive(false);
             return panel;
-        }
-
-        private static void PlaceExhibits(GameObject world)
-        {
-            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(ExhibitPrefabPath);
-            float[] xs = { -2.6f, 0f, 2.6f };
-
-            for (int i = 0; i < ExhibitIds.Length; i++)
-            {
-                GameObject pedestal = Box(world, "Pedestal-" + i, Mat("Accent.mat"),
-                    new Vector3(xs[i], 0.45f, 2.6f), new Vector3(1.1f, 0.9f, 1.1f));
-
-                GameObject exhibit = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
-                exhibit.name = "Exhibit-" + ExhibitIds[i];
-                exhibit.transform.SetParent(pedestal.transform, false);
-                exhibit.transform.localPosition = new Vector3(0, 0.45f, 0);
-                exhibit.transform.localRotation = Quaternion.Euler(0, 180, 0);
-
-                ExhibitController controller = exhibit.GetComponent<ExhibitController>();
-                SerializedObject so = new SerializedObject(controller);
-                so.FindProperty("archiveRecordId").stringValue = ExhibitIds[i];
-                so.ApplyModifiedPropertiesWithoutUndo();
-            }
         }
 
         private static void CreateGrabBall()

@@ -349,6 +349,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AmbedkarHeritage.Interaction.ExhibitController
   archiveRecordId: AMB-SAM-001
+  displayKind: 
   infoPanel: {fileID: 6638341752951248159}
   titleLabel: {fileID: 0}
   metaLabel: {fileID: 0}

@@ -28,6 +28,20 @@ namespace AmbedkarHeritage.Interaction
 
         private void Update()
         {
+            // Give UI buttons priority: while any pointer rests on a button,
+            // do not hover/toggle exhibits behind the panels.
+            if (UIPointer.IsAnyOverUI)
+            {
+                if (_hovered != null)
+                {
+                    _hovered.SetHighlight(false);
+                    _hovered = null;
+                }
+
+                _wasPressed = false;
+                return;
+            }
+
             ExhibitController hit = null;
 
             if (Physics.Raycast(transform.position, transform.forward, out RaycastHit rayHit, reachDistance, exhibitMask, QueryTriggerInteraction.Ignore))

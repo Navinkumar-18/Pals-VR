@@ -59,7 +59,12 @@ namespace AmbedkarHeritage.Core
                     {
                         foreach (ArchiveRecord record in data.records)
                         {
-                            if (!string.IsNullOrEmpty(record.id))
+                            if (record != null)
+                            {
+                                record.EnsureSafeDefaults();
+                            }
+
+                            if (record != null && !string.IsNullOrEmpty(record.id))
                             {
                                 _records.Add(record);
                             }
